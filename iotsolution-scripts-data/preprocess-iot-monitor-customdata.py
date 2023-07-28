@@ -120,10 +120,10 @@ def sendtransactiondata(maintopic,mainproducerid,VIPERPORT,index,preprocesstopic
 
       # Roll back each data stream by 10 percent - change this to a larger number if you want more data
       # For supervised machine learning you need a minimum of 30 data points in each stream
-     maxrows=3000
+     maxrows=4000
       # Go to the last offset of each stream: If lastoffset=500, then this function will rollback the 
       # streams to offset=500-50=450
-     offset=-1
+     offset=-2
       # Max wait time for Kafka to response on milliseconds - you can increase this number if
       #maintopic to produce the preprocess data to
      topic=maintopic
@@ -202,7 +202,7 @@ latlong=lat:long'
      identifier = "IoT device performance and failures"
 
      # if dataage - use:dataage_utcoffset_timetype
-     preprocesslogic='anomprob,trend,avg'
+     preprocesslogic='diff,sum,max'
      #preprocesslogic='dataage_-4_day,trend,min,max' # millisecond,second,minute,hour,day
      #preprocesslogic='dataage_-4_hour' # millisecond,second,minute,hour,day
 #     preprocesslogic='dataage_1_minute' # millisecond,second,minute,hour,day
