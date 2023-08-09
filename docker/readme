@@ -4,7 +4,7 @@ Install DOCKER:
 3. sudo docker run hello-world
 4. sudo docker ps
 
-Docker build command: docker build -t <container name> --build-arg CHIP=<chip arch> --no-cache --network=host .
+Docker build command: docker build -t group6-seneca-tml-assignment2 --build-arg CHIP=ARM64 --no-cache --network=host .
 replace: <container name> with name of your container
 replace: <chip arch> with: ARM32, or ARM64, or AMD64
 
@@ -15,7 +15,7 @@ command will force Docker to used the cached layers:
 ARG CACHEBUST=1
 
 2. Change your Docker build command to:
-docker build -t <container name> --build-arg CHIP=<chip arch> --build-arg CACHEBUST=$(date +%s) --network=host .
+docker build -t group6-seneca-tml-assignment2 --build-arg CHIP=ARM64 --build-arg CACHEBUST=$(date +%s) --network=host .
 
 Docker Tag: docker tag <container id>
 Docker Run: docker run -p 9005:<viperviz port> <container name>
