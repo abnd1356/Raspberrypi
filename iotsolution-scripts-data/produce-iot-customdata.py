@@ -118,17 +118,17 @@ def setupkafkatopic(topicname):
       return tn,pid
 
 
-def csvrangedistrict(filename):
- #vintmlidmain.csv
+def csvlatlong(filename):
+ #dsntmlidmain.csv
   csvfile = open(filename, 'r')
 
-  fieldnames = ("vin","model","make","vid","range","district")
+  fieldnames = ("dsn","oem","identifier","index","lat","long")
   lookup_dict = {}
 
   reader = csv.DictReader( csvfile, fieldnames)
   for row in reader:
-        lookup_dict[(row['vin'], row['range'].lower(),
-                    row['district'].lower(),row['make'])] = row
+        lookup_dict[(row['dsn'], row['lat'].lower(),
+                    row['long'].lower(),row['identifier'])] = row
 
   return lookup_dict
   #i=0
@@ -137,22 +137,22 @@ def csvrangedistrict(filename):
 #     json.dump(row, jsonfile)
  #    jsonfile.write('\n')
     #i = i +1 
-def getrangedistrict(reader,search,key):
+def getlatlong(reader,search,key):
   i=0
   locations = [i for i, t in enumerate(reader) if t[0]==search]
-  value_at_vid = list(reader.values())[locations[0]]
-#  print(value_at_vid['range'],value_at_vid['district'],value_at_vid['make'])
+  value_at_index = list(reader.values())[locations[0]]
+#  print(value_at_index['lat'],value_at_index['long'],value_at_index['identifier'])
   
-  return value_at_vid['range'],value_at_vid['district'],value_at_vid['make']
+  return value_at_index['lat'],value_at_index['long'],value_at_index['identifier']
 
-def getrangedistrict2(reader):
+def getlatlong2(reader):
 
   #print("arr=",reader)
   random_lines=random.choice(list(reader))
 
   return random_lines[1],random_lines[2],random_lines[0]
 
-def producetokafka(value, tmlid, make,producerid,maintopic,substream):
+def producetokafka(value, tmlid, identifier,producerid,maintopic,substream):
      
      
      inputbuf=value     
@@ -166,7 +166,7 @@ def producetokafka(value, tmlid, make,producerid,maintopic,substream):
 
      try:
         result=maadstml.viperproducetotopic(VIPERTOKEN,VIPERHOST,VIPERPORT,maintopic,producerid,enabletls,delay,'','', '',0,inputbuf,substream,
-                                            topicid,make)
+                                            topicid,identifier)
         print(result)
      except Exception as e:
         print("ERROR:",e)
@@ -184,7 +184,7 @@ try:
 except Exception as e:
   pass
 
-reader=csvrangedistrict(basedir + '/IotSolution/vintmlidmain.csv')
+reader=csvlatlong(basedir + '/IotSolution/dsntmlidmain.csv')
 
 k=0
 file1 = open(inputfile, 'r')
@@ -192,15 +192,15 @@ file1 = open(inputfile, 'r')
 while True:
   line = file1.readline()
   line = line.replace(";", " ")
-  # add range/district/make
+  # add lat/long/identifier
 
   #line = line[:-2]
-  jsonline = json.loads(line)
   try:
-    # YOU CAN REPLACE THIS FUNCTION: getrangedistrict(reader,jsonline['metadata']['vin'],'vin') -----> WITH  getrangedistrict2(reader) 
-    # fOR EXAMPLE: range,district,ident=getrangedistrict2(reader)   
-    range,district,ident=getrangedistrict(reader,jsonline['metadata']['vin'],'vin')
-    line = line[:-2] + "," + '"range":' + range + ',"district":'+district + ',"make":"' + ident + '"}'
+    jsonline = json.loads(line)   
+    # YOU CAN REPLACE THIS FUNCTION: getlatlong(reader,jsonline['metadata']['dsn'],'dsn') -----> WITH  getlatlong2(reader) 
+    # fOR EXAMPLE: lat,long,ident=getlatlong2(reader)   
+    lat,long,ident=getlatlong(reader,jsonline['metadata']['dsn'],'dsn')
+    line = line[:-2] + "," + '"lat":' + lat + ',"long":'+long + ',"identifier":"' + ident + '"}'
     if not line:
         #break
        file1.seek(0)
