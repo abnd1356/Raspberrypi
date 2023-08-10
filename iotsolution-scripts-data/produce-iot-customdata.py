@@ -122,7 +122,7 @@ def csvlatdistrict(filename):
  #vintmlidmain.csv
   csvfile = open(filename, 'r')
 
-  fieldnames = ("vin","make","model","OBJECTID","lat","district")
+  fieldnames = ("vin","make","model","pcode","lat","district")
   lookup_dict = {}
 
   reader = csv.DictReader( csvfile, fieldnames)
@@ -140,10 +140,10 @@ def csvlatdistrict(filename):
 def getlatdistrict(reader,search,key):
   i=0
   locations = [i for i, t in enumerate(reader) if t[0]==search]
-  value_at_OBJECTID = list(reader.values())[locations[0]]
-#  print(value_at_OBJECTID['lat'],value_at_OBJECTID['district'],value_at_OBJECTID['model'])
+  value_at_pcode = list(reader.values())[locations[0]]
+#  print(value_at_pcode['lat'],value_at_pcode['district'],value_at_pcode['model'])
   
-  return value_at_OBJECTID['lat'],value_at_OBJECTID['district'],value_at_OBJECTID['model']
+  return value_at_pcode['lat'],value_at_pcode['district'],value_at_pcode['model']
 
 def getrangedistrict2(reader):
 
