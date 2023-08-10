@@ -4,7 +4,7 @@
 # OTICS Advanced Analytics
 
 #######################################################################################################################################
-#  This file will create the mapping for DSN id to TML id
+#  This file will create the mapping for vin id to TML id
 #########################################################################################################################################
 
 # TML python library
@@ -118,17 +118,17 @@ def setupkafkatopic(topicname):
       return tn,pid
 
 
-def csvlatlong(filename):
- #dsntmlidmain.csv
+def csvlatdistrict(filename):
+ #vintmlidmain.csv
   csvfile = open(filename, 'r')
 
-  fieldnames = ("dsn","oem","identifier","index","lat","long")
+  fieldnames = ("vin","make","model","OBJECTID","lat","district")
   lookup_dict = {}
 
   reader = csv.DictReader( csvfile, fieldnames)
   for row in reader:
-        lookup_dict[(row['dsn'], row['lat'].lower(),
-                    row['long'].lower(),row['identifier'])] = row
+        lookup_dict[(row['vin'], row['lat'].lower(),
+                    row['district'].lower(),row['model'])] = row
 
   return lookup_dict
   #i=0
@@ -137,22 +137,22 @@ def csvlatlong(filename):
 #     json.dump(row, jsonfile)
  #    jsonfile.write('\n')
     #i = i +1 
-def getlatlong(reader,search,key):
+def getlatdistrict(reader,search,key):
   i=0
   locations = [i for i, t in enumerate(reader) if t[0]==search]
-  value_at_index = list(reader.values())[locations[0]]
-#  print(value_at_index['lat'],value_at_index['long'],value_at_index['identifier'])
+  value_at_OBJECTID = list(reader.values())[locations[0]]
+#  print(value_at_OBJECTID['lat'],value_at_OBJECTID['district'],value_at_OBJECTID['model'])
   
-  return value_at_index['lat'],value_at_index['long'],value_at_index['identifier']
+  return value_at_OBJECTID['lat'],value_at_OBJECTID['district'],value_at_OBJECTID['model']
 
-def getlatlong2(reader):
+def getrangedistrict2(reader):
 
   #print("arr=",reader)
   random_lines=random.choice(list(reader))
 
   return random_lines[1],random_lines[2],random_lines[0]
 
-def producetokafka(value, tmlid, identifier,producerid,maintopic,substream):
+def producetokafka(value, tmlid, model,producerid,maintopic,substream):
      
      
      inputbuf=value     
@@ -166,7 +166,7 @@ def producetokafka(value, tmlid, identifier,producerid,maintopic,substream):
 
      try:
         result=maadstml.viperproducetotopic(VIPERTOKEN,VIPERHOST,VIPERPORT,maintopic,producerid,enabletls,delay,'','', '',0,inputbuf,substream,
-                                            topicid,identifier)
+                                            topicid,model)
         print(result)
      except Exception as e:
         print("ERROR:",e)
@@ -184,7 +184,7 @@ try:
 except Exception as e:
   pass
 
-reader=csvlatlong(basedir + '/IotSolution/dsntmlidmain.csv')
+reader=csvrangedistrict(basedir + '/IotSolution/vintmlidmain.csv')
 
 k=0
 file1 = open(inputfile, 'r')
@@ -192,15 +192,15 @@ file1 = open(inputfile, 'r')
 while True:
   line = file1.readline()
   line = line.replace(";", " ")
-  # add lat/long/identifier
+  # add range/district/model
 
   #line = line[:-2]
   try:
     jsonline = json.loads(line)   
-    # YOU CAN REPLACE THIS FUNCTION: getlatlong(reader,jsonline['metadata']['dsn'],'dsn') -----> WITH  getlatlong2(reader) 
-    # fOR EXAMPLE: lat,long,ident=getlatlong2(reader)   
-    lat,long,ident=getlatlong(reader,jsonline['metadata']['dsn'],'dsn')
-    line = line[:-2] + "," + '"lat":' + lat + ',"long":'+long + ',"identifier":"' + ident + '"}'
+    # YOU CAN REPLACE THIS FUNCTION: getrangedistrict(reader,jsonline['metadata']['vin'],'vin') -----> WITH  getrangedistrict2(reader) 
+    # fOR EXAMPLE: range,district,ident=getrangedistrict2(reader)   
+    range,district,ident=getrangedistrict(reader,jsonline['metadata']['vin'],'vin')
+    line = line[:-2] + "," + '"range":' + range + ',"district":'+district + ',"model":"' + ident + '"}'
     if not line:
         #break
        file1.seek(0)
