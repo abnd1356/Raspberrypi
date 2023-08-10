@@ -77,7 +77,7 @@ RUN wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1
 RUN chmod +x IoTData.zip
 RUN unzip IoTData.zip
 
-RUN wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1_RICecxEZUjuCfm_MxPGwrOXxQ5w179O' -O dsntmlidmain.csv
+RUN wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1zuMUypQB1BO-w_BxCAews_aCWOKI9cjl' -O dsntmlidmain.csv
 RUN chmod +x dsntmlidmain.csv
 RUN rm -rf IoTData.zip
 
@@ -264,7 +264,7 @@ RUN chmod -R +x Hpde
 
 
 RUN echo "Replace VIPER.ENV"
-RUN git clone --depth 1 https://github.com/abnd1356/raspberrypi.git
+RUN git clone --depth 1 https://github.com/smaurice101/raspberrypi.git
 
 RUN chmod -R +x raspberrypi
 
