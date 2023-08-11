@@ -4,7 +4,7 @@
 # OTICS Advanced Analytics
 
 #######################################################################################################################################
-#  This file will create the mapping for vin id to TML id
+#  This file will create the mapping for country id to TML id
 #########################################################################################################################################
 
 # TML python library
@@ -122,13 +122,13 @@ def csvlatdistrict(filename):
  #vintmlidmain.csv
   csvfile = open(filename, 'r')
 
-  fieldnames = ("vin","make","model","pcode","lat","district")
+  fieldnames = ("country","country_code","continent","population","indicator","year_week")
   lookup_dict = {}
 
   reader = csv.DictReader( csvfile, fieldnames)
   for row in reader:
-        lookup_dict[(row['vin'], row['lat'].lower(),
-                    row['district'].lower(),row['model'])] = row
+        lookup_dict[(row['country'], row['indicator'].lower(),
+                    row['year_week'].lower(),row['continent'])] = row
 
   return lookup_dict
   #i=0
@@ -141,9 +141,9 @@ def getlatdistrict(reader,search,key):
   i=0
   locations = [i for i, t in enumerate(reader) if t[0]==search]
   value_at_pcode = list(reader.values())[locations[0]]
-#  print(value_at_pcode['lat'],value_at_pcode['district'],value_at_pcode['model'])
+#  print(value_at_pcode['indicator'],value_at_pcode['year_week'],value_at_pcode['continent'])
   
-  return value_at_pcode['lat'],value_at_pcode['district'],value_at_pcode['model']
+  return value_at_pcode['indicator'],value_at_pcode['year_week'],value_at_pcode['continent']
 
 def getrangedistrict2(reader):
 
@@ -152,7 +152,7 @@ def getrangedistrict2(reader):
 
   return random_lines[1],random_lines[2],random_lines[0]
 
-def producetokafka(value, tmlid, model,producerid,maintopic,substream):
+def producetokafka(value, tmlid, continent,producerid,maintopic,substream):
      
      
      inputbuf=value     
@@ -166,7 +166,7 @@ def producetokafka(value, tmlid, model,producerid,maintopic,substream):
 
      try:
         result=maadstml.viperproducetotopic(VIPERTOKEN,VIPERHOST,VIPERPORT,maintopic,producerid,enabletls,delay,'','', '',0,inputbuf,substream,
-                                            topicid,model)
+                                            topicid,continent)
         print(result)
      except Exception as e:
         print("ERROR:",e)
@@ -192,15 +192,15 @@ file1 = open(inputfile, 'r')
 while True:
   line = file1.readline()
   line = line.replace(";", " ")
-  # add range/district/model
+  # add range/year_week/continent
 
   #line = line[:-2]
   try:
     jsonline = json.loads(line)   
-    # YOU CAN REPLACE THIS FUNCTION: getrangedistrict(reader,jsonline['metadata']['vin'],'vin') -----> WITH  getrangedistrict2(reader) 
-    # fOR EXAMPLE: range,district,ident=getrangedistrict2(reader)   
-    range,district,ident=getrangedistrict(reader,jsonline['metadata']['vin'],'vin')
-    line = line[:-2] + "," + '"range":' + range + ',"district":'+district + ',"model":"' + ident + '"}'
+    # YOU CAN REPLACE THIS FUNCTION: getrangedistrict(reader,jsonline['metadata']['country'],'country') -----> WITH  getrangedistrict2(reader) 
+    # fOR EXAMPLE: range,year_week,ident=getrangedistrict2(reader)   
+    range,year_week,ident=getrangedistrict(reader,jsonline['metadata']['country'],'country')
+    line = line[:-2] + "," + '"range":' + range + ',"year_week":'+year_week + ',"continent":"' + ident + '"}'
     if not line:
         #break
        file1.seek(0)
