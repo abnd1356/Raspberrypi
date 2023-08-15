@@ -44,25 +44,55 @@ from joblib import Parallel, delayed
 
 # Set Global variables for VIPER and HPDE - You can change IP and Port for your setup of 
 # VIPER and HPDE
-VIPERHOST="https://127.0.0.1"
-VIPERPORT=21003
-hpdehost="http://127.0.0.1"
-hpdeport=30001
+VIPERHOST=''
+VIPERPORT=''
+HTTPADDR='https://'
+HPDEHOST=''
+HPDEPORT=''
+
+#VIPERHOST="https://127.0.0.1"
+#VIPERPORT=21003
+#hpdehost="http://127.0.0.1"
+#hpdeport=30001
 
 # Set Global variable for Viper confifuration file - change the folder path for your computer
-#viperconfigfile="c:/maads/companies/firstgenesis/viper.env"
-viperconfigfile="c:/maads/golang/go/bin/viper.env"
+viperconfigfile="/Viper-tml/viper.env"
 
 #############################################################################################################
 #                                      STORE VIPER TOKEN
 # Get the VIPERTOKEN from the file admin.tok - change folder location to admin.tok
 # to your location of admin.tok
 def getparams():
-     with open("c:/maads/golang/go/bin/admin.tok", "r") as f:
+     global VIPERHOST, VIPERPORT, HTTPADDR
+     with open("/Viper-tml/admin.tok", "r") as f:
         VIPERTOKEN=f.read()
+
+     if VIPERHOST=="":
+        with open('/Viper-tml/viper.txt', 'r') as f:
+          output = f.read()
+          VIPERHOST = HTTPADDR + output.split(",")[0]
+          VIPERPORT = output.split(",")[1]
+        with open('/Viper-tml/hpde.txt', 'r') as f:
+          output = f.read()
+          HPDEHOST = HTTPADDR + output.split(",")[0]
+          HPDEPORT = output.split(",")[1]
+          
      return VIPERTOKEN
 
 VIPERTOKEN=getparams()
+
+if VIPERHOST=="":
+    print("ERROR: Cannot read viper.txt: VIPERHOST is empty or HPDEHOST is empty")
+if HPDEHOST=="":
+    print("ERROR: Cannot read viper.txt: HPDEHOST is empty")
+
+def deleteTopics(topic):
+
+     enabletls=1
+
+     result=maadstml.viperdeletetopics(VIPERTOKEN,VIPERHOST,VIPERPORT,topic,enabletls,'',9092,'')
+     print(result)
+
 
 def performSupervisedMachineLearning(maintopic,topicid):
 
@@ -166,11 +196,28 @@ def performSupervisedMachineLearning(maintopic,topicid):
                                       brokerhost,brokerport,networktimeout,microserviceid,topicid,maintopic,
                                       independentvariables,dependentvariable,rollbackoffsets,fullpathtotrainingdata,processlogic,identifier)    
       
+##      result=maadstml.viperhpdetraining(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,producetotopic,
+##                                      companyname,consumeridtrainingdata2,producerid, hpdehost,
+##                                      viperconfigfile,enabletls,partition_training,
+##                                      deploy,modelruns,modelsearchtuner,hpdeport,offset,islogistic,
+##                                      brokerhost,brokerport,networktimeout,microserviceid,topicid,maintopic,
+##                                      independentvariables,dependentvariable,rollbackoffsets,fullpathtotrainingdata,
+##                                      processlogic,identifier,array,transformtype,sendcoefto,coeftoprocess,coefsubtopicnames)    
       print("Training Result=",result)
 ##########################################################################
 
+# Change this to any number
+numpredictions=10000
+iotdevices=3
 maintopic="iot-preprocess"
 
+# create separate and custom micro-ML models for each account, location, IoT device, etc.
+
+#element_run = Parallel(n_jobs=1)(delayed(performSupervisedMachineLearning)(maintopic,j) for j in range(iotdevices))
+
+#deleteTopics("fhir-ml-prediction-results-output")
+
+#for j in range(iotdevices):
 while True:
   try:
      # Re-train every 10 seconds- change to whatever number you wish
