@@ -48,25 +48,47 @@ import time
 
 # Set Global variables for VIPER and HPDE - You can change IP and Port for your setup of 
 # VIPER and HPDE
-VIPERHOST="https://127.0.0.1"
-VIPERPORT=21004
-hpdehost="http://127.0.0.1"
-hpdeport=30001
+VIPERHOST=''
+VIPERPORT=''
+HTTPADDR='https://'
+HPDEHOST=''
+HPDEPORT=''
+
+#VIPERHOST="https://127.0.0.1"
+#VIPERPORT=21003
+#hpdehost="http://127.0.0.1"
+#hpdeport=30001
 
 # Set Global variable for Viper confifuration file - change the folder path for your computer
-viperconfigfile="c:/maads/golang/go/bin/viper.env"
+viperconfigfile="/Viper-predict/viper.env"
 
 #############################################################################################################
 #                                      STORE VIPER TOKEN
 # Get the VIPERTOKEN from the file admin.tok - change folder location to admin.tok
 # to your location of admin.tok
 def getparams():
-     with open("c:/maads/golang/go/bin/admin.tok", "r") as f:
+     global VIPERHOST, VIPERPORT, HTTPADDR
+     with open("/Viper-predict/admin.tok", "r") as f:
         VIPERTOKEN=f.read()
-  
+
+     if VIPERHOST=="":
+        with open('/Viper-predict/viper.txt', 'r') as f:
+          output = f.read()
+          VIPERHOST = HTTPADDR + output.split(",")[0]
+          VIPERPORT = output.split(",")[1]
+        with open('/Viper-predict/hpde.txt', 'r') as f:
+          output = f.read()
+          HPDEHOST = HTTPADDR + output.split(",")[0]
+          HPDEPORT = output.split(",")[1]
+          
      return VIPERTOKEN
 
 VIPERTOKEN=getparams()
+
+if VIPERHOST=="":
+    print("ERROR: Cannot read viper.txt: VIPERHOST is empty or HPDEHOST is empty")
+if HPDEHOST=="":
+    print("ERROR: Cannot read viper.txt: HPDEHOST is empty")
 
 
 # Set personal data
@@ -195,6 +217,9 @@ def performPrediction(maintopic,producerid,VIPERPORT,topicid,producetotopic):
 ##########################################################################
 #############################################################################################################
 #                                     SETUP THE TOPIC DATA STREAMS EXAMPLE
+# Change this to any number
+#numpredictions=10000
+#iotdevices=1
 maintopic="iot-preprocess"
 
 predictiontopic="iot-ml-prediction-results-output"
@@ -202,11 +227,16 @@ predictiontopic="iot-ml-prediction-results-output"
 producerid=datasetup(maintopic,predictiontopic)
 print(maintopic,producerid)
 
+
+
 def spawnvipers():
 
       while True:
           performPrediction(maintopic,producerid,VIPERPORT,-1,predictiontopic)
           time.sleep(.1)
+          
+#         startviper(begend)  
+  
+
 
 spawnvipers()           
-
