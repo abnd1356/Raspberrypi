@@ -9,7 +9,6 @@
 
 # TML python library
 import maadstml
-#import maadstmlmedia
 
 # Uncomment IF using Jupyter notebook 
 #import nest_asyncio
@@ -31,14 +30,21 @@ import time
 
 # Set Global variables for VIPER and HPDE - You can change IP and Port for your setup of 
 # VIPER and HPDE
-VIPERHOST="https://127.0.0.1"
-VIPERPORT=8000
+#VIPERHOST="https://127.0.0.1"
+#VIPERPORT=8000
 
 #VIPERHOST="https://10.0.0.144"
 #VIPERPORT=62049
 
 # Set Global variable for Viper confifuration file - change the folder path for your computer
-viperconfigfile="c:/maads/golang/go/bin/viper.env"
+basedir = os.environ['userbasedir']
+viperconfigfile=basedir + "/Viper-produce/viper.env"
+
+
+# Set Global Host/Port for VIPER - You may change this to fit your configuration
+VIPERHOST=''
+VIPERPORT=''
+HTTPADDR='https://'
 
 
 #############################################################################################################
@@ -46,14 +52,21 @@ viperconfigfile="c:/maads/golang/go/bin/viper.env"
 # Get the VIPERTOKEN from the file admin.tok - change folder location to admin.tok
 # to your location of admin.tok
 def getparams():
-        
-     with open("c:/maads/golang/go/bin/admin.tok", "r") as f:
+     global VIPERHOST, VIPERPORT, HTTPADDR
+     with open("/Viper-produce/admin.tok", "r") as f:
         VIPERTOKEN=f.read()
-  
+
+     if VIPERHOST=="":
+        with open('/Viper-produce/viper.txt', 'r') as f:
+          output = f.read()
+          VIPERHOST = HTTPADDR + output.split(",")[0]
+          VIPERPORT = output.split(",")[1]
+          
      return VIPERTOKEN
 
 VIPERTOKEN=getparams()
-
+if VIPERHOST=="":
+    print("ERROR: Cannot read viper.txt: VIPERHOST is empty or HPDEHOST is empty")
 
 
 def setupkafkatopic(topicname):
@@ -64,9 +77,9 @@ def setupkafkatopic(topicname):
       mylocation="Toronto"
 
       # Replication factor for Kafka redundancy
-      replication=3
+      replication=1
       # Number of partitions for joined topic
-      numpartitions=3
+      numpartitions=1
       # Enable SSL/TLS communication with Kafka
       enabletls=1
       # If brokerhost is empty then this function will use the brokerhost address in your
@@ -132,6 +145,12 @@ def getlatlong(reader,search,key):
   
   return value_at_index['lat'],value_at_index['long'],value_at_index['identifier']
 
+def getlatlong2(reader):
+
+  #print("arr=",reader)
+  random_lines=random.choice(list(reader))
+
+  return random_lines[1],random_lines[2],random_lines[0]
 
 def producetokafka(value, tmlid, identifier,producerid,maintopic,substream):
      
@@ -139,7 +158,7 @@ def producetokafka(value, tmlid, identifier,producerid,maintopic,substream):
      inputbuf=value     
      topicid=-999
 
-     print("value=",value)
+    # print("value=",value)
        
      # Add a 7000 millisecond maximum delay for VIPER to wait for Kafka to return confirmation message is received and written to topic 
      delay=7000
@@ -154,7 +173,7 @@ def producetokafka(value, tmlid, identifier,producerid,maintopic,substream):
 
       
 
-inputfile='IoTData.txt'
+inputfile=basedir + '/IotSolution/IoTData.txt'
 
 maintopic='iot-mainstream'
 
@@ -165,7 +184,7 @@ try:
 except Exception as e:
   pass
 
-reader=csvlatlong('dsntmlidmain.csv')
+reader=csvlatlong(basedir + '/IotSolution/dsntmlidmain.csv')
 
 k=0
 file1 = open(inputfile, 'r')
@@ -176,15 +195,17 @@ while True:
   # add lat/long/identifier
 
   #line = line[:-2]
-  jsonline = json.loads(line)
   try:
-    lat,long,ident=getlatlong(reader,jsonline['metadata']['dsn'],'dsn')
+    jsonline = json.loads(line)   
+    # YOU CAN REPLACE THIS FUNCTION: getlatlong(reader,jsonline['metadata']['dsn'],'dsn') -----> WITH  getlatlong2(reader) 
+    lat,long,ident=getlatlong2(reader)   
+    #lat,long,ident=getlatlong(reader,jsonline['metadata']['dsn'],'dsn')
     line = line[:-2] + "," + '"lat":' + lat + ',"long":'+long + ',"identifier":"' + ident + '"}'
     if not line:
         #break
        file1.seek(0)
     producetokafka(line.strip(), "", "",producerid,maintopic,"")
-    #time.sleep(0.1)
+    time.sleep(0.2)
   except Exception as e:
      pass  
   
