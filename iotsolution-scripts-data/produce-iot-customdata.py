@@ -4,7 +4,7 @@
 # OTICS Advanced Analytics
 
 #######################################################################################################################################
-#  This file will create the mapping for vin id to TML id
+#  This file will create the mapping for location id to TML id
 #########################################################################################################################################
 
 # TML python library
@@ -22,7 +22,7 @@ import csv
 import gc
 import os
 from itertools import chain
-from random import randrange
+from random import randtime
 import math
 import imp
 import time
@@ -118,17 +118,17 @@ def setupkafkatopic(topicname):
       return tn,pid
 
 
-def csvdistrictpcode(filename):
+def csvvalueuuid(filename):
  #dsntmlidmain.csv
   csvfile = open(filename, 'r')
 
-  fieldnames = ("vin","make","model","range","district","pcode")
+  fieldnames = ("location","metadata","event","time","value","uuid")
   lookup_dict = {}
 
   reader = csv.DictReader( csvfile, fieldnames)
   for row in reader:
-        lookup_dict[(row['vin'], row['district'].lower(),
-                    row['pcode'].lower(),row['model'])] = row
+        lookup_dict[(row['location'], row['value'].lower(),
+                    row['uuid'].lower(),row['event'])] = row
 
   return lookup_dict
   #i=0
@@ -137,22 +137,22 @@ def csvdistrictpcode(filename):
 #     json.dump(row, jsonfile)
  #    jsonfile.write('\n')
     #i = i +1 
-def getdistrictpcode(reader,search,key):
+def getvalueuuid(reader,search,key):
   i=0
   locations = [i for i, t in enumerate(reader) if t[0]==search]
-  value_at_range = list(reader.values())[locations[0]]
-#  print(value_at_range['district'],value_at_range['pcode'],value_at_range['model'])
+  value_at_time = list(reader.values())[locations[0]]
+#  print(value_at_time['value'],value_at_time['uuid'],value_at_time['event'])
   
-  return value_at_range['district'],value_at_range['pcode'],value_at_range['model']
+  return value_at_time['value'],value_at_time['uuid'],value_at_time['event']
 
-def getdistrictpcode2(reader):
+def getvalueuuid2(reader):
 
   #print("arr=",reader)
   random_lines=random.choice(list(reader))
 
   return random_lines[1],random_lines[2],random_lines[0]
 
-def producetokafka(value, tmlid, model,producerid,maintopic,substream):
+def producetokafka(value, tmlid, event,producerid,maintopic,substream):
      
      
      inputbuf=value     
@@ -166,7 +166,7 @@ def producetokafka(value, tmlid, model,producerid,maintopic,substream):
 
      try:
         result=maadstml.viperproducetotopic(VIPERTOKEN,VIPERHOST,VIPERPORT,maintopic,producerid,enabletls,delay,'','', '',0,inputbuf,substream,
-                                            topicid,model)
+                                            topicid,event)
         print(result)
      except Exception as e:
         print("ERROR:",e)
@@ -184,7 +184,7 @@ try:
 except Exception as e:
   pass
 
-reader=csvdistrictpcode(basedir + '/IotSolution/dsntmlidmain.csv')
+reader=csvvalueuuid(basedir + '/IotSolution/dsntmlidmain.csv')
 
 k=0
 file1 = open(inputfile, 'r')
@@ -192,15 +192,15 @@ file1 = open(inputfile, 'r')
 while True:
   line = file1.readline()
   line = line.replace(";", " ")
-  # add district/pcode/model
+  # add value/uuid/event
 
   #line = line[:-2]
   try:
     jsonline = json.loads(line)   
-    # YOU CAN REPLACE THIS FUNCTION: getdistrictpcode(reader,jsonline['metadata']['vin'],'vin') -----> WITH  getdistrictpcode2(reader) 
-    district,pcode,ident=getdistrictpcode2(reader)   
-    #district,pcode,ident=getdistrictpcode(reader,jsonline['metadata']['vin'],'vin')
-    line = line[:-2] + "," + '"district":' + district + ',"pcode":'+pcode + ',"model":"' + ident + '"}'
+    # YOU CAN REPLACE THIS FUNCTION: getvalueuuid(reader,jsonline['metadata']['location'],'location') -----> WITH  getvalueuuid2(reader) 
+    value,uuid,ident=getvalueuuid2(reader)   
+    #value,uuid,ident=getvalueuuid(reader,jsonline['metadata']['location'],'location')
+    line = line[:-2] + "," + '"value":' + value + ',"uuid":'+uuid + ',"event":"' + ident + '"}'
     if not line:
         #break
        file1.seek(0)
