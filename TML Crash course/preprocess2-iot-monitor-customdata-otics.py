@@ -20,9 +20,12 @@ import os
 # Uncomment IF using Jupyter notebook
 nest_asyncio.apply()
 
+basedir = os.environ['userbasedir'] 
+
 # Set Global Host/Port for VIPER - You may change this to fit your configuration
-VIPERHOST="https://127.0.0.1"
-VIPERPORT=8000
+VIPERHOST=''
+VIPERPORT=''
+HTTPADDR='https://'
 
 
 #############################################################################################################
@@ -30,13 +33,21 @@ VIPERPORT=8000
 # Get the VIPERTOKEN from the file admin.tok - change folder location to admin.tok
 # to your location of admin.tok
 def getparams():
-        
-     with open("c:/maads/golang/go/bin/admin.tok", "r") as f:
+     global VIPERHOST, VIPERPORT, HTTPADDR
+     with open("/Viper-preprocess2/admin.tok", "r") as f:
         VIPERTOKEN=f.read()
-  
+
+     if VIPERHOST=="":
+        with open('/Viper-preprocess2/viper.txt', 'r') as f:
+          output = f.read()
+          VIPERHOST = HTTPADDR + output.split(",")[0]
+          VIPERPORT = output.split(",")[1]
+          
      return VIPERTOKEN
 
 VIPERTOKEN=getparams()
+if VIPERHOST=="":
+    print("ERROR: Cannot read viper.txt: VIPERHOST is empty or HPDEHOST is empty")
 
 #############################################################################################################
 #                                     CREATE TOPICS IN KAFKA
@@ -49,9 +60,9 @@ def datasetup(maintopic,preprocesstopic):
      mylocation="Toronto"
 
      # Replication factor for Kafka redundancy
-     replication=3
+     replication=1
      # Number of partitions for joined topic
-     numpartitions=3
+     numpartitions=1
      # Enable SSL/TLS communication with Kafka
      enabletls=1
      # If brokerhost is empty then this function will use the brokerhost address in your
@@ -122,12 +133,12 @@ def sendtransactiondata(maintopic,mainproducerid,VIPERPORT,index,preprocesstopic
      microserviceid=''
       #These are the streams to preprocess
      #streamstojoin=substream + "," + substream + "," + substream
-     streamstojoin="Voltage_preprocessed_AnomProb,Current_preprocessed_AnomProb,Voltage_preprocessed_Trend,Current_preprocessed_Trend"
+     streamstojoin="Voltage_preprocessed_AnomProb,Current_preprocessed_AnomProb"
 
       # You can preprocess with the following functions: MAX, MIN, SUM, AVG, COUNT, DIFF
       # here we will take max values of the arcturus-humidity, we will Diff arcturus-temperature, and average arcturus-Light_Intensity
       # NOTE: The number of process logic functions MUST match the streams - the operations will be applied in the same order
-     preprocesslogic='avg,avg,avg,avg'
+     preprocesslogic='avg,avg'
      #preprocesslogic='diff'
      preprocessconditions=''
     
