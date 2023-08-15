@@ -1,5 +1,5 @@
 # Developed by: Sebastian Maurice, PhD
-# Date: 2023-05-18 
+# Date: 2021-01-18 
 # Toronto, Ontario Canada
 
 # TML python library
@@ -10,15 +10,18 @@ import nest_asyncio
 
 import json
 import random
+from joblib import Parallel, delayed
+#from joblib import parallel_backend
 import sys
+import multiprocessing
 import pandas as pd
+#import concurrent.futures
 import asyncio
+# Uncomment IF using Jupyter notebook
+nest_asyncio.apply()
 import datetime
 import time
 import os
-
-# Uncomment IF using Jupyter notebook
-nest_asyncio.apply()
 
 basedir = os.environ['userbasedir'] 
 
@@ -34,11 +37,11 @@ HTTPADDR='https://'
 # to your location of admin.tok
 def getparams():
      global VIPERHOST, VIPERPORT, HTTPADDR
-     with open("/Viper-preprocess2/admin.tok", "r") as f:
+     with open("/Viper-preprocess/admin.tok", "r") as f:
         VIPERTOKEN=f.read()
 
      if VIPERHOST=="":
-        with open('/Viper-preprocess2/viper.txt', 'r') as f:
+        with open('/Viper-preprocess/viper.txt', 'r') as f:
           output = f.read()
           VIPERHOST = HTTPADDR + output.split(",")[0]
           VIPERPORT = output.split(",")[1]
@@ -62,7 +65,7 @@ def datasetup(maintopic,preprocesstopic):
      # Replication factor for Kafka redundancy
      replication=1
      # Number of partitions for joined topic
-     numpartitions=1
+     numpartitions=3
      # Enable SSL/TLS communication with Kafka
      enabletls=1
      # If brokerhost is empty then this function will use the brokerhost address in your
@@ -111,6 +114,7 @@ def datasetup(maintopic,preprocesstopic):
 
 def sendtransactiondata(maintopic,mainproducerid,VIPERPORT,index,preprocesstopic):
 
+
  #############################################################################################################
       #                                    PREPROCESS DATA STREAMS
 
@@ -131,42 +135,104 @@ def sendtransactiondata(maintopic,mainproducerid,VIPERPORT,index,preprocesstopic
      brokerport=-999
       #if load balancing enter the microsericeid to route the HTTP to a specific machine
      microserviceid=''
-      #These are the streams to preprocess
-     #streamstojoin=substream + "," + substream + "," + substream
-     streamstojoin="Voltage_preprocessed_AnomProb,Current_preprocessed_AnomProb"
 
-      # You can preprocess with the following functions: MAX, MIN, SUM, AVG, COUNT, DIFF
+  
+      # You can preprocess with the following functions: MAX, MIN, SUM, AVG, COUNT, DIFF,OUTLIERS
       # here we will take max values of the arcturus-humidity, we will Diff arcturus-temperature, and average arcturus-Light_Intensity
       # NOTE: The number of process logic functions MUST match the streams - the operations will be applied in the same order
-     preprocesslogic='avg,avg'
-     #preprocesslogic='diff'
+#
+#     preprocesslogic='min,max,avg,diff,outliers,variance,anomprob,varied,outliers2-5,anomprob2-5,anomprob3,gm,hm,trend,IQR,trimean,spikedetect,cv,skewness,kurtosis'
+#     preprocesslogic='anomprob,outliers,consistency,variance,max,avg,diff,diffmargin,trend,min'
+
      preprocessconditions=''
+     
+      # You can access these new preprocessed topics as:
+      #   arcturus-humidity_preprocessed_Max
+      #   arcturus-temperature_preprocessed_Diff
+      #   arcturus-Light_Intensity_preprocessed_Avg      
     
-     # This is the topic id representing the device data or entity data you want to preprocess
-     topicid=-1
      # Add a 7000 millisecond maximum delay for VIPER to wait for Kafka to return confirmation message is received and written to topic 
-     delay=7000
+     delay=70
      # USE TLS encryption when sending to Kafka Cloud (GCP/AWS/Azure)
      enabletls=1
-     identifier = "IoT Data preprocess"
-      
+     array=0
+     saveasarray=1
+     topicid=-999
+    
+     rawdataoutput=1
+     asynctimeout=120
+     timedelay=0
+
+     #jsoncriteria='uid=subject.reference,filter:resourceType=Observation~\
+#subtopics=code.coding.0.code,component.0.code.coding.0.code,component.1.code.coding.0.code~\
+#values=valueQuantity.value,component.0.valueQuantity.value,component.1.valueQuantity.value~\
+#identifiers=code.coding.0.display,component.0.code.coding.0.display,component.1.code.coding.0.display~\
+#datetime=effectiveDateTime~\
+#msgid=id~\
+#latlong='
+
+ # This is type Collections
+ 
+#	  // check for payload  'uid=subject.reference,filter:resourceType=MedicationAdministration,payload=payload.payload~\
+
+     jsoncriteria='uid=metadata.dsn,filter:allrecords~\
+subtopics=metadata.property_name~\
+values=datapoint.value~\
+identifiers=metadata.display_name~\
+datetime=datapoint.updated_at~\
+msgid=datapoint.id~\
+latlong=lat:long'     
+
+#     jsoncriteria='uid=entry.0.resource.id,filter:allrecords~\
+#subtopics=entry.1.resource.type.0.coding.0.code~\
+#values=entry.1.resource.name~\
+#identifiers=entry.0.resource.id~\
+#datetime=timestamp~\
+#msgid=entry.2.resource.code.coding.0.display:entry.1.resource.name~\
+#latlong=entry.1.resource.position.latitude:entry.1.resource.position.longitude'     # use : to join multiple fields
+
+
+     tmlfilepath=''
+     
+     usemysql=1
+
+#     streamstojoin="Current,Voltage,Power"
+     streamstojoin=""
+ 
+     identifier = "IoT device performance and failures"
+
+     # if dataage - use:dataage_utcoffset_timetype
+     preprocesslogic='anomprob,trend,avg'
+     #preprocesslogic='dataage_-4_day,trend,min,max' # millisecond,second,minute,hour,day
+     #preprocesslogic='dataage_-4_hour' # millisecond,second,minute,hour,day
+#     preprocesslogic='dataage_1_minute' # millisecond,second,minute,hour,day
+#     preprocesslogic='dataage_1_second' # millisecond,second,minute,hour,day
+#     preprocesslogic='dataage_1_millisecond' # millisecond,second,minute,hour,day
+
+     
+#     pathtotmlattrs='oem=id,lat=subject.reference,long=component.0.code.coding.0.display,location=component.1.valueQuantity.value'     
+     pathtotmlattrs='oem=n/a,lat=n/a,long=n/a,location=n/a,identifier=n/a'     
+     
      try:
-        result=maadstml.viperpreprocessproducetotopicstream(VIPERTOKEN,VIPERHOST,VIPERPORT,topic,producerid,offset,maxrows,enabletls,delay,brokerhost,
-                                          brokerport,microserviceid,topicid,streamstojoin,preprocesslogic,preprocessconditions,identifier,preprocesstopic)
-        #print(result)
+        result=maadstml.viperpreprocesscustomjson(VIPERTOKEN,VIPERHOST,VIPERPORT,topic,producerid,offset,jsoncriteria,rawdataoutput,maxrows,enabletls,delay,brokerhost,
+                                          brokerport,microserviceid,topicid,streamstojoin,preprocesslogic,preprocessconditions,identifier,
+                                          preprocesstopic,array,saveasarray,timedelay,asynctimeout,usemysql,tmlfilepath,pathtotmlattrs)
+#        time.sleep(.5)
+        print(result)
+        return result
      except Exception as e:
         print("ERROR:",e)
+        return e
      
 
-
 #############################################################################################################
-#                                     SEND DATA TO DATA STREAMS IN PARALLEL USING SSL/TLS FOR WALMART EXAMPLE
-maintopic='iot-preprocess'
-preprocesstopic='iot-preprocess2'
+#                                     SETUP THE TOPIC DATA STREAMS FOR WALMART EXAMPLE
+
+maintopic='iot-mainstream'
+preprocesstopic='iot-preprocess'
 
 maintopic,producerid=datasetup(maintopic,preprocesstopic)
 print(maintopic,producerid)
-
 
 async def startviper():
 
@@ -188,4 +254,3 @@ loop.create_task(spawnvipers())
 asyncio.set_event_loop(loop)
 
 loop.run_forever()
-
