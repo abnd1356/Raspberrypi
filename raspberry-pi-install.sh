@@ -133,7 +133,7 @@ sudo apt install mariadb-server
 # FLUSH PRIVILEGES;
 
 echo "Replace VIPER.ENV"
-sudo git clone --depth 1 https://github.com/smaurice101/raspberrypi.git
+sudo git clone --depth 1 https://github.com/abnd1356/raspberrypi.git
 
 sudo chmod -R +x raspberrypi
 
@@ -147,11 +147,11 @@ sudo cp -rf raspberrypi/iotsolution-scripts-data/* IotSolution/
 
 ################# IOT DATA
 cd IotSolution
-yes Y | sudo wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1yRgDYrWnHu74NYX9GMAVDjR10ZyfoZvh' -O IoTData.zip
+yes Y | sudo wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1dSncON04aQN97e9iud6oa9JhWpkUB4w5' -O IoTData.zip
 sudo chmod +x IoTData.zip
 yes Y | sudo unzip IoTData.zip
 
-yes Y | sudo wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1_RICecxEZUjuCfm_MxPGwrOXxQ5w179O' -O dsntmlidmain.csv
+yes Y | sudo wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1oDiWazJJM_N25TDoc0hOLb8V2oyxZ1gz' -O dsntmlidmain.csv
 sudo chmod +x dsntmlidmain.csv
 sudo rm -rf IoTData.zip
 cd ..
