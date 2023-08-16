@@ -184,7 +184,7 @@ try:
 except Exception as e:
   pass
 
-reader=csvvalueuuid(basedir + '/IotSolution/dsntmlidmain.csv')
+reader=csvlatlong(basedir + '/IotSolution/dsntmlidmain.csv')
 
 k=0
 file1 = open(inputfile, 'r')
@@ -192,15 +192,15 @@ file1 = open(inputfile, 'r')
 while True:
   line = file1.readline()
   line = line.replace(";", " ")
-  # add value/uuid/event
+  # add lat/long/identifier
 
   #line = line[:-2]
   try:
     jsonline = json.loads(line)   
-    # YOU CAN REPLACE THIS FUNCTION: getvalueuuid(reader,jsonline['metadata']['location'],'location') -----> WITH  getvalueuuid2(reader) 
-    value,uuid,ident=getvalueuuid2(reader)   
-    #value,uuid,ident=getvalueuuid(reader,jsonline['metadata']['location'],'location')
-    line = line[:-2] + "," + '"value":' + value + ',"uuid":'+uuid + ',"event":"' + ident + '"}'
+    # YOU CAN REPLACE THIS FUNCTION: getlatlong(reader,jsonline['metadata']['dsn'],'dsn') -----> WITH  getlatlong2(reader) 
+    # fOR EXAMPLE: lat,long,ident=getlatlong2(reader)   
+    lat,long,ident=getlatlong2(reader,jsonline['metadata']['dsn'],'dsn')
+    line = line[:-2] + "," + '"lat":' + lat + ',"long":'+long + ',"identifier":"' + ident + '"}'
     if not line:
         #break
        file1.seek(0)
