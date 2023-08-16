@@ -29,9 +29,9 @@ import time
 
 
 # Set Global variables for VIPER and HPDE - You can change IP and Port for your setup of 
-VIPER and HPDE
-VIPERHOST="https://127.0.0.1"
-VIPERPORT=8000
+#VIPER and HPDE
+#VIPERHOST="https://127.0.0.1"
+#VIPERPORT=8000
 
 #VIPERHOST="https://10.0.0.144"
 #VIPERPORT=62049
@@ -198,8 +198,8 @@ while True:
   try:
     jsonline = json.loads(line)   
     # YOU CAN REPLACE THIS FUNCTION: getlatlong(reader,jsonline['metadata']['dsn'],'dsn') -----> WITH  getlatlong2(reader) 
-    # fOR EXAMPLE: lat,long,ident=getlatlong2(reader)   
-    lat,long,ident=getlatlong2(reader,jsonline['metadata']['dsn'],'dsn')
+    lat,long,ident=getlatlong2(reader)   
+    #lat,long,ident=getlatlong2(reader,jsonline['metadata']['dsn'],'dsn')
     line = line[:-2] + "," + '"lat":' + lat + ',"long":'+long + ',"identifier":"' + ident + '"}'
     if not line:
         #break
