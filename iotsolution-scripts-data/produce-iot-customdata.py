@@ -42,9 +42,9 @@ viperconfigfile=basedir + "/Viper-produce/viper.env"
 
 
 # Set Global Host/Port for VIPER - You may change this to fit your configuration
-#VIPERHOST=''
-#VIPERPORT=''
-#HTTPADDR='https://'
+VIPERHOST=''
+VIPERPORT=''
+HTTPADDR='https://'
 
 
 #############################################################################################################
