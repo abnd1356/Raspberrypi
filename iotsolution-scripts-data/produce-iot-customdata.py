@@ -4,7 +4,7 @@
 # OTICS Advanced Analytics
 
 #######################################################################################################################################
-#  This file will create the mapping for location id to TML id
+#  This file will create the mapping for DSN id to TML id
 #########################################################################################################################################
 
 # TML python library
@@ -22,14 +22,14 @@ import csv
 import gc
 import os
 from itertools import chain
-from random import randtime
+from random import randrange
 import math
 import imp
 import time
 
 
 # Set Global variables for VIPER and HPDE - You can change IP and Port for your setup of 
-#VIPER and HPDE
+# VIPER and HPDE
 #VIPERHOST="https://127.0.0.1"
 #VIPERPORT=8000
 
@@ -42,9 +42,9 @@ viperconfigfile=basedir + "/Viper-produce/viper.env"
 
 
 # Set Global Host/Port for VIPER - You may change this to fit your configuration
-#VIPERHOST=''
-#VIPERPORT=''
-#HTTPADDR='https://'
+VIPERHOST=''
+VIPERPORT=''
+HTTPADDR='https://'
 
 
 #############################################################################################################
@@ -118,17 +118,17 @@ def setupkafkatopic(topicname):
       return tn,pid
 
 
-def csvvalueuuid(filename):
+def csvlatlong(filename):
  #dsntmlidmain.csv
   csvfile = open(filename, 'r')
 
-  fieldnames = ("location","metadata","event","time","value","uuid")
+  fieldnames = ("dsn","oem","identifier","index","lat","long")
   lookup_dict = {}
 
   reader = csv.DictReader( csvfile, fieldnames)
   for row in reader:
-        lookup_dict[(row['location'], row['value'].lower(),
-                    row['uuid'].lower(),row['event'])] = row
+        lookup_dict[(row['dsn'], row['lat'].lower(),
+                    row['long'].lower(),row['identifier'])] = row
 
   return lookup_dict
   #i=0
@@ -137,22 +137,22 @@ def csvvalueuuid(filename):
 #     json.dump(row, jsonfile)
  #    jsonfile.write('\n')
     #i = i +1 
-def getvalueuuid(reader,search,key):
+def getlatlong(reader,search,key):
   i=0
   locations = [i for i, t in enumerate(reader) if t[0]==search]
-  value_at_time = list(reader.values())[locations[0]]
-#  print(value_at_time['value'],value_at_time['uuid'],value_at_time['event'])
+  value_at_index = list(reader.values())[locations[0]]
+#  print(value_at_index['lat'],value_at_index['long'],value_at_index['identifier'])
   
-  return value_at_time['value'],value_at_time['uuid'],value_at_time['event']
+  return value_at_index['lat'],value_at_index['long'],value_at_index['identifier']
 
-def getvalueuuid2(reader):
+def getlatlong2(reader):
 
   #print("arr=",reader)
   random_lines=random.choice(list(reader))
 
   return random_lines[1],random_lines[2],random_lines[0]
 
-def producetokafka(value, tmlid, event,producerid,maintopic,substream):
+def producetokafka(value, tmlid, identifier,producerid,maintopic,substream):
      
      
      inputbuf=value     
@@ -166,7 +166,7 @@ def producetokafka(value, tmlid, event,producerid,maintopic,substream):
 
      try:
         result=maadstml.viperproducetotopic(VIPERTOKEN,VIPERHOST,VIPERPORT,maintopic,producerid,enabletls,delay,'','', '',0,inputbuf,substream,
-                                            topicid,event)
+                                            topicid,identifier)
         print(result)
      except Exception as e:
         print("ERROR:",e)
@@ -184,7 +184,7 @@ try:
 except Exception as e:
   pass
 
-reader=csvvaluetime(basedir + '/IotSolution/dsntmlidmain.csv')
+reader=csvlatlong(basedir + '/IotSolution/dsntmlidmain.csv')
 
 k=0
 file1 = open(inputfile, 'r')
@@ -192,15 +192,15 @@ file1 = open(inputfile, 'r')
 while True:
   line = file1.readline()
   line = line.replace(";", " ")
-  # add value/time/uuid
+  # add lat/long/identifier
 
   #line = line[:-2]
   try:
     jsonline = json.loads(line)   
-    # YOU CAN REPLACE THIS FUNCTION: getvaluetime(reader,jsonline['metadata']['location'],'location') -----> WITH  getvaluetime2(reader) 
-    value,time,ident=getvaluetime2(reader)   
-    #value,time,ident=getvaluetime2(reader,jsonline['metadata']['location'],'location')
-    line = line[:-2] + "," + '"value":' + value + ',"time":'+time + ',"uuid":"' + ident + '"}'
+    # YOU CAN REPLACE THIS FUNCTION: getlatlong(reader,jsonline['metadata']['dsn'],'dsn') -----> WITH  getlatlong2(reader) 
+    lat,long,ident=getlatlong2(reader)   
+    #lat,long,ident=getlatlong(reader,jsonline['metadata']['dsn'],'dsn')
+    line = line[:-2] + "," + '"lat":' + lat + ',"long":'+long + ',"identifier":"' + ident + '"}'
     if not line:
         #break
        file1.seek(0)
