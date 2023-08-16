@@ -147,11 +147,11 @@ sudo cp -rf raspberrypi/iotsolution-scripts-data/* IotSolution/
 
 ################# IOT DATA
 cd IotSolution
-yes Y | sudo wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1dSncON04aQN97e9iud6oa9JhWpkUB4w5' -O IoTData.zip
+yes Y | sudo wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1pAiuDho2XrVG79gaCPerhIVuIig0uptT' -O IoTData.zip
 sudo chmod +x IoTData.zip
 yes Y | sudo unzip IoTData.zip
 
-yes Y | sudo wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1oDiWazJJM_N25TDoc0hOLb8V2oyxZ1gz' -O dsntmlidmain.csv
+yes Y | sudo wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1oFIfX1jwHc3sKxjppsCAE0AwU1Iu-l_R' -O dsntmlidmain.csv
 sudo chmod +x dsntmlidmain.csv
 sudo rm -rf IoTData.zip
 cd ..
