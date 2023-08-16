@@ -198,8 +198,8 @@ while True:
   try:
     jsonline = json.loads(line)   
     # YOU CAN REPLACE THIS FUNCTION: getvaluetime(reader,jsonline['metadata']['location'],'location') -----> WITH  getvaluetime2(reader) 
-    #value,time,ident=getvaluetime2(reader)   
-    value,time,ident=getvaluetime2(reader,jsonline['metadata']['location'],'location')
+    value,time,ident=getvaluetime2(reader)   
+    #value,time,ident=getvaluetime2(reader,jsonline['metadata']['location'],'location')
     line = line[:-2] + "," + '"value":' + value + ',"time":'+time + ',"uuid":"' + ident + '"}'
     if not line:
         #break
