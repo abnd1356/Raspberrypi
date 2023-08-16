@@ -151,7 +151,7 @@ yes Y | sudo wget --no-check-certificate 'https://docs.google.com/uc?export=down
 sudo chmod +x IoTData.zip
 yes Y | sudo unzip IoTData.zip
 
-yes Y | sudo wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1oFIfX1jwHc3sKxjppsCAE0AwU1Iu-l_R' -O dsntmlidmain.csv
+yes Y | sudo wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1YsDYU06JkA3jmlHw_cqRxThvpdEP9yuI' -O dsntmlidmain.csv
 sudo chmod +x dsntmlidmain.csv
 sudo rm -rf IoTData.zip
 cd ..
