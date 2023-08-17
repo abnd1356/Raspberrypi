@@ -132,8 +132,8 @@ def sendtransactiondata(maintopic,mainproducerid,VIPERPORT,index,preprocesstopic
       #if load balancing enter the microsericeid to route the HTTP to a specific machine
      microserviceid=''
       #These are the streams to preprocess
-     #streamstojoin=substream + "," + substream + "," + substream
-     streamstojoin="Voltage_preprocessed_AnomProb,Current_preprocessed_AnomProb"
+     streamstojoin=substream + "," + substream + "," + substream
+     #streamstojoin="Voltage_preprocessed_AnomProb,Current_preprocessed_AnomProb"
 
       # You can preprocess with the following functions: MAX, MIN, SUM, AVG, COUNT, DIFF
       # here we will take max values of the arcturus-humidity, we will Diff arcturus-temperature, and average arcturus-Light_Intensity
